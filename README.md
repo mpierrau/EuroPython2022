@@ -1,5 +1,6 @@
-# Welcome to the most advanced-easy-to-read-absolute-fire Python knowledge base that exists!!
+# Notes for attended talks at EuroPyton 2022 Dublin
 Below you can find a table of diffrent topics that were discussed during the EuroPython 2022 conference. There is a "Priority" column that implies how relevant (we thought) the talk was. You can find our notes in the different folders corresponding to the topic. Most of them are still quite draft-y.
+There are also links to the correct time-slots in the open YouTube-streams so you can watch them too :)
 ### [All EuroPy2022 talks](https://www.youtube.com/playlist?list=PL8uoeex94UhFzv6hQ_V02xfMCcl8sUr4p)
 | __Title__ 	| __Topic__ 	| __Priority (lo 0 - 10 hi)__ 	| __Direct YouTube link__ 	| __Tutorial/Talk/Keynote__ 	| __Speaker__ 	| __Watched by__ 	|
 |---	|---	|---	|---	|---	|---	|---	|
