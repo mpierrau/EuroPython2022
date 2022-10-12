@@ -1,0 +1,186 @@
+Testing and Debugging in Python
+
+### [Why is it slow? Strategies for solving performance problems](https://ep2022.europython.eu/session/why-is-it-slow-strategies-for-solving-performance-problems)
+
+#### 1. Fundamentals
+The most important thing: _When it's slow, what is it doing?_ In an overall way -- What is the __whole program__ trying to do?
+
+Look beyond the "current line" or "current function".
+Slow code often
+... produces the same result -> cache it!
+... isn't even required! -> remove it!
+
+Best optimization is not to run a certain line at all.
+Try to find macro-optimizations betfore micro.
+
+When it's slow: Call the stack!
+
+There are __many__ tools. Look for `simplicity x impact`
+
+First decide what data you want, then choose the tool. The other way around will cost you time.
+
+#### 2. It's easy
+Local code. Easy to run.
+Having tests makes it easy to run parts of your program.
+pytest -k \<keywords\> (narrow scope of test)
+
+- Best "bang for buck": `Ctrl-C` ! ([stack sampling](https://bit.ly/3cb9lni)))
+- Gives a stack trace!
+- Call stack: what your code is aiming to do
+
+Cprofile gives you time spent on a line, but not why and the relation between lines.
+Also cProfile has huge overhead (70+ secs instead of 2s in fib example).
+Also feeds the temptation to focus on micro-optimizations.
+
+cProfile is more useful by using `pytest-profiling`.
+use `--profile-svg` with `pytest`.
+
+#### 3. It's complicated
+Example:
+- Threads & Subprocesses
+- Difficult to execute narrow scope
+- cProfile is too slow
+- Native extensions in C/C++/Cython
+
+[`py-spy`](https://github.com/benfred/py-spy)
+
+- Sampling profiler, attaches to Python process
+- Very low speed impact
+- Can profile all sub-processes
+- Can dump call stacks on demand
+- Can include native extensions in call stack
+- Works great in Docker containers (exec)
+
+`py-spy record -o profile.svg --pid 7 --subprocesses` Gives a profile image of the entire run
+
+`py-spy top --pid 12345` like top but by functions in a running process!
+
+`py-spy dump --pid 12345` Dumps a call stack for each thread
+
+`-l, --locals` shows local variables for each frame. Passing mutiple times (`-ll`) increases verbosity
+
+#### 4. Distributed systems and microservices
+Slowness is non-deterministic -- hard to pinpoint.
+
+We still want a call-stack.
+
+Distributed tracing is a technique used to monitor and observe requests as they flow through your distributed services.
+
+Use `Honeycomb`.
+- Gives a tree
+- There is a cost
+- Data must be collected continuously
+- You must add code to collect trace data
+- honeycomb helps with this
+  - decorator and context manager!
+ 
+`Honeycomb` can be useful even in non-distributed tracing(?)
+- "In dev I trace all SQL queries"
+
+#### Summary
+- You want to get the call stack!
+- When possible, `Ctrl-C` is fast and direct
+- If you need more detail, `pytest-profiling`
+- If it's complicated, use `py-spy`
+- If it's distributed, use a tracing system like `Honeycomb`
+
+
+### [Data Validation for Data Science](https://ep2022.europython.eu/session/data-validation-for-data-science) (LK)
+This talk showcased different tools of data validation. Since ML models rely heavily on quality of data, this could indeed be useful.
+The presenter showcased many examples of the tools being able to prevent unexpected runtime errors that were raised because of incoherent data. However, the tools also offer various quality checks which can be validated through pre-defined functions. You can iterate your data with a few lines of code and see if the column of data in question only has unique values. Or if needed, why not check that the standard deviation does not exceed a certain value?
+The tools vary in complexity and flexibility, but can indeed be used for most data validation problems. Which one to use seems to rely on the user's taste and needs.
+
+Also, three notebooks for brief introduction to three different tools of data validation in the public git below.
+
+https://github.com/NatanMish/data_validation
+Why use data validation tools and procedures?
+It will ensure:
+1. Data integrity
+2. Reliability - Prevent and detect bugs in data at first read
+3. Readability
+4. Familiarity
+
+Implementing data validation will make you get to know the data better.
+Know the limits, range, types etc of the data.
+
+Data validation steps ensure a more reliable working process.
+
+#### Python tools for Data Validation
+##### Great Expectations
+Great expectations is a very technical tool that offers a wide range of methods to validate data. WIll take time to learn since it has some prior necessary setup to work with before it can be used. Great for prior data quality testing, according to the presenter. Also has good documentation.
+https://greatexpectations.io/
+
+
+##### Pandera
+"The least popular data validation tool."
+
+“Pandera provides a flexible and expressive API for performing data validation on dataframes to make data processing pipelines more readable and robust. Dataframes contain information that pandera explicitly validates at runtime. This is useful in production-critical data pipelines or reproducible research settings.”
+Seems to have the same kind of structure of function calls as Great Expectations, but is easier to set up.
+Can use decorators, each function marked with a decorator will be checked to whatever criteria set for it is fulfilled when the function is running. The checks apply for both input and output. Pandera seems to be the choice if you want a quick startup with easy to understand methods.
+Can work with hypothesis and its generators of inputs. Useful to find edge cases of the data.
+Hypothesis creates the synthetic data, can be useful when the data pipeline is not yet fully set and "test" the data validation.
+https://pandera.readthedocs.io/en/stable/
+
+##### Pydantic
+The most popular tool for data validation (out of these three choices).
+
+“Pydantic allows data validation and settings management using python type annotations. It enforces type hints at runtime, and provides user-friendly errors when data is invalid”.
+
+The base model class defines an object in one of the fields where the object is expected.
+Well written documentation for Pydantic, according to the presenter.
+Can also use Hypothesis to generate data model objects, to run tests until failure (or pass).
+
+Pydantic uses a more object oriented approach and relies on its Base class of which you can explicitly define what attributes you are expecting of your class. Pydantic can also handle recursive behavior of its classes, such that you can inherit values from a parent class for more specific tests. An example of this exists in the Pydantic notebook.
+
+
+### [TDD in Python with pytest](https://ep2022.europython.eu/session/tdd-in-python-with-pytest) (Leonardo Giordani) (MP)
+
+[Free books on Python!](https://leanpub.com/b/theindiepythonextravaganza/c/europython2022) 
+
+An introductory workshop describing what TDD is, and what are the main rules. This is done by developing a very simple Python library in a sort of a game that mirrors a daily TDD development routine. We will also learn how to use pytest, which is one of the most used testing libraries in Python.
+
+#### Take aways
+- Pytest is good shit and we should use it more!
+- Avoid more than 3-4 asserts per test
+- Can use regex expressions in pytest to match specific patterns in error handling: pytest.raises(ValueError,match(regex)) !
+- TDD RULES
+- Test first, code later
+- Add the bare minimum amount of code you need to pass the tests
+- You shouldn't have more than one failing test at a time
+- Write code that passes the test. Then refactor it.
+- A test should fail the first time you run it. If it doesn't, ask yourself why you are adding it.
+- Never refactor without tests.
+- It is REALLY worth it! At least some tests, no matter what you are doing. (You will learn something!)
+- Code coverage > 80 is sufficient, if 100 then something is up!
+- Tests should be fast ("coffee rule")
+- Tests should be idempotent ("run it multiple times without it failing")
+- Tests should be isolated (“not depend on external systems”)
+- External systems (unit vs integration testing) = everything outside of your project (e.g. a database) should not be tested!
+- Use mocks! Pytest has its own? Check what Jacob said about this!
+- [digitalcat blog posts on TDD](https://www.thedigitalcatonline.com/categories/tdd/)
+
+
+### [PySnooper: Never use print for debugging again](https://ep2022.europython.eu/session/pysnooper-never-use-print-for-debugging-again) (Ram Rachum) (MP)
+
+#### Debugging
+- Debugger is useful
+- But setup is painful and hard
+- Print statements are crude and not very efficient
+
+#### [PySnooper](https://github.com/cool-RR/PySnooper)
+- PySnooper is a compromise. Relatively easy to set up and pretty powerful, but not as powerful as debugger tools.
+-Ssome options: output, watch (input some expression and it will track it. like 'sum(bits)'), depth, thread_info (check Readme, no official docs)
+
+#### How to market your open-source project
+- _Readme expectations_:
+  - Explain the main points
+  - Simple usage (a _clear_ example)
+  - How to install
+  - Link to tutorials and/or docs
+- Post on Hacker News, Reddit, Twitter, blog
+
+#### PuDB: CLI debugger, feels like GUI
+- pip install pudb
+- Debugger in the shell (“pdb feels like a text-based adventure from the 80’s”)
+- Might be nice
+
